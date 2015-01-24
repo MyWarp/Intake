@@ -29,8 +29,8 @@ builds are available.
 ```xml
 <repositories>
   <repository>
-    <id>thee140-cloudbees-snapshots</id>
-    <url>http://repository-thee140.forge.cloudbees.com/snapshots/</url>
+    <id>thee140-cloudbees-snapshot</id>
+    <url>http://repository-thee140.forge.cloudbees.com/snapshot/</url>
     <releases>
       <enabled>false</enabled>
     </releases>
