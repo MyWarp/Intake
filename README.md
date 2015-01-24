@@ -1,46 +1,20 @@
 Intake
 ======
 
-Intake is a Java library for parsing user commands.
+This repository is a fork of the original [Intake](https://github.com/sk89q/Intake)
+by sk89q, aimed at providing a relatively stable base to build upon and to include
+some advanced features needed for use in other projects that are not yet part of
+the original version.
 
-Commands can be registered via two ways:
-
-* Methods can be annotated with `@Command`.
-* A class can implement `CommandCallable`.
-
-Several commands can be registered on an implementation of `Dispatcher`, which
-can parse input and execute the correct command.
-
-Sub-commands are supported. This is because all `Dispatcher`s are also
-`CommandCallable`s, so you can add a dispatcher to another dispatcher to another
-dispatcher!
-
-In addition, Intake supports completion of arguments, although currently the
-annotation method of command registration does not support the completion of
-parameters in a command. You can complete sub-commands, however.
-
-The API supports a rich amount of metadata about each command, allowing the
-inspection of registered commands, their parameters, their permissions, and
-their usage instructions.
-
-History
--------
-
-This library is taken from [WorldEdit](https://github.com/sk89q/worldedit) 6.x.
-You may be familiar with the older command framework in WorldEdit — while this
-library is based off of that framework, it has been taken from a newer version of
-WorldEdit, which at the time of writing, has not been released.
+To prevent confusion, the `groupId`of this version has been changed to
+`de.minehattan`.
 
 Usage
 -----
 
-Please be aware that the library is currently a work in progress. While it was
-merged into WorldEdit's `main` branch, it was done after more than a year
-since it was originally written. There may be some small bugs here and
-and there is currently a dire lack of unit tests.
-
-There is currently some legacy code as well, which tends to be stable but very
-poorly documented.
+As for the original project, the same perquisites apply: There may be some small
+bugs and there is a dire lack of unit tests and some legacy code is poorly
+documented.
 
 It is strongly recommended that if you use this library in a plugin or mod
 for Minecraft, the library should be shaded and the `com.sk89q.intake` package
@@ -49,13 +23,20 @@ relocated to something internal to your project (i.e. `myproject.internal.intake
 Intake currently requires some version of Google Guava that is equal to or
 newer than 10.0.1. Guava is not bundled with the library.
 
-Currently, Intake is available in sk89q's Maven repository:
+Builds of this version are available in thee's Maven repository. Only snapshot
+builds are available.
 
 ```xml
 <repositories>
   <repository>
-    <id>maven.sk89q.com</id>
-    <url>http://maven.sk89q.com/repo/</url>
+    <id>thee140-cloudbees-snapshots</id>
+    <url>http://repository-thee140.forge.cloudbees.com/snapshots/</url>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
   </repository>
 </repositories>
 ```
@@ -65,36 +46,14 @@ As a dependency,
 ```xml
 <dependencies>
   <dependency>
-    <groupId>com.sk89q</groupId>
+    <groupId>de.minehattan</groupId>
     <artifactId>intake</artifactId>
     <version>{version here}</version>
   </dependency>
 </dependencies>
 ```
 
-No release of Intake has been made. Only snapshot builds are available.
-
 **Note:** The API is subject to change in snapshot builds.
-
-Backwards Compatibility
------------------------
-
-An effort was made to make transitioning from the older command framework easier
-with fairly minimal changes required to the code. If you are planning to convert
-from the old command framework to this version, be aware of these changes:
-
-* The `CommandPermissions` annotation was renamed to `Require`.
-* The `WrappedCommandException` class was renamed to `InvocationCommandException`.
-* A considerable amount of code was split up and decoupled. Now, `SimpleDispatcher`
-  is the main class for registering commands and the "annotated commands" support
-  is separate.
-* The old `CommandManager` has been replaced with a newer `ParametricBuilder`
-  class that is more powerful, allowing for injection of arbitrary types
-  (i.e. `yourMethod(String name, int age)` instead of just
-  `yourMethod(Player player, CommandContext args)`). There is some
-  backwards compatibility if `LegacyCommandsHelper` is registered
-  on the instance of `ParametricBuilder`.
-* `Injector` was removed. Pass instances to `ParametricBuilder`.
 
 Examples
 --------
@@ -211,7 +170,7 @@ locals.put(User.class, caller);
 String[] parentCommands = new String[0]; // No parent commands
 
 // Note: Prefix characters (/, ., etc.) must be removed
-dispatcher.call("love bob", locals, String[] parentCommands);
+dispatcher.call("love bob", locals, parentCommands);
 ```
 
 Inspect a command:
@@ -224,9 +183,7 @@ String desc = mapping.getDescription().getShortDescription();
 Documentation
 -------------
 
-Documentation is currently a work-in-progress.
-
-Find it here: https://github.com/sk89q/Intake/wiki
+See the documentation of the original version: https://github.com/sk89q/Intake/wiki
 
 
 Compiling
@@ -242,12 +199,3 @@ Contributing
 Intake is available under the GNU Lesser General Public License.
 
 We happily accept contributions, especially through pull requests on GitHub.
-
-Links
------
-
-* [Visit our website](http://www.enginehub.org/)
-* [IRC channel](http://skq.me/irc/irc.esper.net/sk89q/) (#sk89q on irc.esper.net)
-
-
-----------
