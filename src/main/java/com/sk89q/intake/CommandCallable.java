@@ -47,7 +47,7 @@ public interface CommandCallable extends CommandCompleter {
      * 
      * @return the command description
      */
-    Description getDescription();
+    SettableDescription getDescription();
 
     /**
      * Test whether this command can be executed with the given context.

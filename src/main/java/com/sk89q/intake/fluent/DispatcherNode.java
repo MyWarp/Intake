@@ -31,7 +31,7 @@ public class DispatcherNode {
 
     private final CommandGraph graph;
     private final DispatcherNode parent;
-    private final SimpleDispatcher dispatcher;
+    private final Dispatcher dispatcher;
     
     /**
      * Create a new instance.
@@ -40,7 +40,7 @@ public class DispatcherNode {
      * @param parent the parent node, or null
      * @param dispatcher the dispatcher for this node
      */
-    DispatcherNode(CommandGraph graph, DispatcherNode parent, SimpleDispatcher dispatcher) {
+    DispatcherNode(CommandGraph graph, DispatcherNode parent, Dispatcher dispatcher) {
         this.graph = graph;
         this.parent = parent;
         this.dispatcher = dispatcher;
@@ -86,20 +86,33 @@ public class DispatcherNode {
         builder.registerMethodsAsCommands(getDispatcher(), object);
         return this;
     }
+
+    /**
+     * Create a new command that will contain sub-commands.
+     *
+     * <p>The object returned by this method can be used to add sub-commands. To
+     * return to this "parent" context, use {@link DispatcherNode#graph()}.</p>
+     *
+     * @param alias the list of aliases, where the first alias is the primary one
+     * @return an object to place sub-commands
+     */
+    public DispatcherNode group(String... alias) {
+        return group(new SimpleDispatcher(), alias);
+    }
     
     /**
      * Create a new command that will contain sub-commands.
      * 
      * <p>The object returned by this method can be used to add sub-commands. To
      * return to this "parent" context, use {@link DispatcherNode#graph()}.</p>
-     * 
+     *
+     * @param dispatcher the {@link com.sk89q.intake.dispatcher.Dispatcher} that is used by the commands registered on this level
      * @param alias the list of aliases, where the first alias is the primary one
      * @return an object to place sub-commands
      */
-    public DispatcherNode group(String... alias) {
-        SimpleDispatcher command = new SimpleDispatcher();
-        getDispatcher().registerCommand(command, alias);
-        return new DispatcherNode(graph, this, command);
+    public DispatcherNode group(Dispatcher dispatcher, String... alias) {
+        getDispatcher().registerCommand(dispatcher, alias);
+        return new DispatcherNode(graph, this, dispatcher);
     }
     
     /**
