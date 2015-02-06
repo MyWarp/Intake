@@ -67,6 +67,11 @@ public abstract class ExceptionConverterHelper implements ExceptionConverter {
 
     @Override
     public void convert(Throwable t) throws CommandException {
+        if (t instanceof CommandException) {
+            // no need to convert
+            throw (CommandException) t;
+        }
+
         Class<?> throwableClass = t.getClass();
         for (ExceptionHandler handler : handlers) {
             if (handler.cls.isAssignableFrom(throwableClass)) {
