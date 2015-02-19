@@ -6,7 +6,7 @@
 
   <groupId>de.minehattan</groupId>
   <artifactId>intake</artifactId>
-  <version>3.1.1-SNAPSHOT</version>
+  <version>3.1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
