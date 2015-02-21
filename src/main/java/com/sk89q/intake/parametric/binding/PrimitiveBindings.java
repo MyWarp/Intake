@@ -24,20 +24,28 @@ import com.sk89q.intake.parametric.annotation.Range;
 import com.sk89q.intake.parametric.annotation.Text;
 import com.sk89q.intake.parametric.annotation.Validate;
 import com.sk89q.intake.parametric.argument.ArgumentStack;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 /**
  * Handles basic Java types such as {@link String}s, {@link Byte}s, etc.
- * 
+ *
  * <p>Handles both the object and primitive types.</p>
  */
 public final class PrimitiveBindings extends BindingHelper {
 
+    private final Messages messages;
+
+    public PrimitiveBindings(ResourceProvider resourceProvider) {
+        this.messages = new Messages(resourceProvider);
+    }
+
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param text the text annotation
      * @param modifiers a list of modifiers
@@ -58,7 +66,7 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param modifiers a list of modifiers
      * @return the requested type
@@ -68,7 +76,7 @@ public final class PrimitiveBindings extends BindingHelper {
                   behavior = BindingBehavior.CONSUMES,
                   consumedCount = 1,
                   provideModifiers = true)
-    public String getString(ArgumentStack context, Annotation[] modifiers) 
+    public String getString(ArgumentStack context, Annotation[] modifiers)
             throws ParameterException {
         String v = context.next();
         validate(v, modifiers);
@@ -77,7 +85,7 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @return the requested type
      * @throws ParameterException on error
@@ -104,13 +112,14 @@ public final class PrimitiveBindings extends BindingHelper {
         try {
             return Double.parseDouble(input);
         } catch (NumberFormatException e1) {
-            throw new ParameterException(String.format("Expected '%s' to be a number", input));
+            throw new ParameterException(messages.getString("invalid.number",
+                    input));
         }
     }
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param modifiers a list of modifiers
      * @return the requested type
@@ -133,7 +142,7 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param modifiers a list of modifiers
      * @return the requested type
@@ -153,7 +162,7 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param modifiers a list of modifiers
      * @return the requested type
@@ -175,7 +184,7 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Gets a type from a {@link ArgumentStack}.
-     * 
+     *
      * @param context the context
      * @param modifiers a list of modifiers
      * @return the requested type
@@ -192,56 +201,50 @@ public final class PrimitiveBindings extends BindingHelper {
         }
         return null;
     }
-    
+
     /**
      * Validate a number value using relevant modifiers.
-     * 
+     *
      * @param number the number
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */
-    private static void validate(double number, Annotation[] modifiers) 
+    private void validate(double number, Annotation[] modifiers)
             throws ParameterException {
         for (Annotation modifier : modifiers) {
             if (modifier instanceof Range) {
                 Range range = (Range) modifier;
                 if (number < range.min()) {
-                    throw new ParameterException(
-                            String.format(
-                                    "A valid value is greater than or equal to %s " +
-                                    "(you entered %s)", range.min(), number));
+                    throw new ParameterException(messages.getString("invalid.greater.equal",
+                            range.min(), number));
                 } else if (number > range.max()) {
-                    throw new ParameterException(
-                            String.format(
-                                    "A valid value is less than or equal to %s " +
-                                    "(you entered %s)", range.max(), number));
+                    throw new ParameterException(messages.getString("invalid.less.equal",
+                            range.max(), number));
                 }
             }
         }
     }
-    
+
     /**
      * Validate a number value using relevant modifiers.
-     * 
+     *
      * @param number the number
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */
-    private static void validate(int number, Annotation[] modifiers) 
+    private void validate(int number, Annotation[] modifiers)
             throws ParameterException {
         for (Annotation modifier : modifiers) {
             if (modifier instanceof Range) {
                 Range range = (Range) modifier;
                 if (number < range.min()) {
                     throw new ParameterException(
-                            String.format(
-                                    "A valid value is greater than or equal to %s " +
-                                    "(you entered %s)", range.min(), number));
+                            messages.getString("invalid.greater.equal",
+                                    range.min(), number));
                 } else if (number > range.max()) {
                     throw new ParameterException(
-                            String.format(
-                                    "A valid value is less than or equal to %s " +
-                                    "(you entered %s)", range.max(), number));
+                            messages.getString("invalid.less.equal",
+                                    range.max(), number));
                 }
             }
         }
@@ -249,32 +252,30 @@ public final class PrimitiveBindings extends BindingHelper {
 
     /**
      * Validate a string value using relevant modifiers.
-     * 
+     *
      * @param string the string
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */
-    private static void validate(String string, Annotation[] modifiers) 
+    private void validate(String string, Annotation[] modifiers)
             throws ParameterException {
         if (string == null) {
             return;
         }
-        
+
         for (Annotation modifier : modifiers) {
             if (modifier instanceof Validate) {
                 Validate validate = (Validate) modifier;
-                
+
                 if (!validate.regex().isEmpty()) {
                     if (!string.matches(validate.regex())) {
                         throw new ParameterException(
-                                String.format(
-                                        "The given text doesn't match the right " +
-                                        "format (technically speaking, the 'format' is %s)", 
+                                        messages.getString("invalid.format",
                                         validate.regex()));
                     }
                 }
             }
         }
     }
-    
+
 }

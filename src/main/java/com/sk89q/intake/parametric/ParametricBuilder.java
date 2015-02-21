@@ -19,7 +19,6 @@
 
 package com.sk89q.intake.parametric;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap.Builder;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.intake.Command;
@@ -39,6 +38,9 @@ import com.sk89q.intake.parametric.handler.InvokeHandler;
 import com.sk89q.intake.parametric.handler.InvokeListener;
 import com.sk89q.intake.util.auth.Authorizer;
 import com.sk89q.intake.util.auth.NullAuthorizer;
+import com.sk89q.intake.util.i18n.DefaultResourceProvider;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -64,12 +66,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ParametricBuilder {
 
+    private final ResourceProvider resourceProvider;
+    private final Messages messages;
     private final Map<Type, Binding> bindings = new HashMap<Type, Binding>();
     private final List<InvokeListener> invokeListeners = new ArrayList<InvokeListener>();
     private final List<ExceptionConverter> exceptionConverters = new ArrayList<ExceptionConverter>();
     private Authorizer authorizer = new NullAuthorizer();
     private CommandCompleter defaultCompleter = new NullCompleter();
     private ExecutorService commandExecutor = MoreExecutors.sameThreadExecutor();
+
+    public ParametricBuilder() {
+        this (new DefaultResourceProvider());
+    }
     
     /**
      * Create a new builder.
@@ -77,8 +85,10 @@ public class ParametricBuilder {
      * <p>This method will install {@link PrimitiveBindings} and 
      * {@link StandardBindings} and default bindings.</p>
      */
-    public ParametricBuilder() {
-        addBinding(new PrimitiveBindings());
+    public ParametricBuilder(ResourceProvider resourceProvider) {
+        this.resourceProvider = checkNotNull(resourceProvider);
+        this.messages = new Messages(resourceProvider);
+        addBinding(new PrimitiveBindings(resourceProvider));
         addBinding(new StandardBindings());
     }
 
@@ -128,7 +138,8 @@ public class ParametricBuilder {
      * 
      * <p>An example of an invocation listener is one to handle
      * {@link Require}, by first checking to see if permission is available
-     * in a {@link InvokeHandler#preInvoke(Object, Method, ParameterData[], Object[], CommandContext)}
+     * in a {@link InvokeHandler#preInvoke(Object, Method, ParameterData[],
+     * Object[], CommandContext)}
      * call. If permission is not found, then an appropriate {@link CommandException}
      * can be thrown to cease invocation.</p>
      * 
@@ -281,6 +292,15 @@ public class ParametricBuilder {
     public void setDefaultCompleter(CommandCompleter defaultCompleter) {
         checkNotNull(defaultCompleter);
         this.defaultCompleter = defaultCompleter;
+    }
+
+    /**
+     * Gets the ResourceProvider that provides resources to commands.
+     *
+     * @return the ResourceProvider
+     */
+    public ResourceProvider getResourceProvider() {
+        return resourceProvider;
     }
 
 }

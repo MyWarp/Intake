@@ -29,6 +29,8 @@ import com.sk89q.intake.context.CommandContext;
 import com.sk89q.intake.parametric.ParameterData;
 import com.sk89q.intake.parametric.ParameterException;
 import com.sk89q.intake.parametric.binding.BindingBehavior;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 import java.lang.reflect.Method;
 
@@ -37,6 +39,17 @@ import java.lang.reflect.Method;
  * {@link Command#max()}.
  */
 public class LegacyCommandsHandler extends AbstractInvokeListener implements InvokeHandler {
+
+    private final Messages messages;
+
+    /**
+     * Creates an instance.
+     *
+     * @param resourceProvider the ResourceProvider
+     */
+    public LegacyCommandsHandler(ResourceProvider resourceProvider) {
+        this.messages = new Messages(resourceProvider);
+    }
 
     @Override
     public InvokeHandler createInvokeHandler() {
@@ -87,7 +100,7 @@ public class LegacyCommandsHandler extends AbstractInvokeListener implements Inv
             }
             
             if (!hasUserParameters) {
-                description.overrideUsage("(unknown usage information)");
+                description.overrideUsage(messages.getString("usage.unknown"));
             }
         }
     }

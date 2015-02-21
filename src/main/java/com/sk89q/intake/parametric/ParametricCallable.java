@@ -32,6 +32,8 @@ import com.sk89q.intake.parametric.handler.ExceptionConverter;
 import com.sk89q.intake.parametric.handler.InvokeHandler;
 import com.sk89q.intake.parametric.handler.InvokeListener;
 import com.sk89q.intake.util.auth.AuthorizationException;
+import com.sk89q.intake.util.i18n.I18nDescription;
+import com.sk89q.intake.util.i18n.Messages;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -54,8 +56,9 @@ class ParametricCallable implements CommandCallable {
     private final Set<Character> valueFlags = new HashSet<Character>();
     private final boolean anyFlags;
     private final Set<Character> legacyFlags = new HashSet<Character>();
-    private final SettableDescription description = new SettableDescription();
+    private final SettableDescription description;
     private final Require permission;
+    private final Messages messages;
 
     /**
      * Create a new instance.
@@ -66,10 +69,17 @@ class ParametricCallable implements CommandCallable {
      * @param definition the command definition annotation
      * @throws ParametricException thrown on an error
      */
-    ParametricCallable(ParametricBuilder builder, Object object, Method method, Command definition) throws ParametricException {
+    ParametricCallable(ParametricBuilder builder, Object object, Method method,
+                       Command definition) throws ParametricException {
         this.builder = builder;
         this.object = object;
         this.method = method;
+
+        if (builder.getResourceProvider().supportsCommandAnnotations()) {
+            description = new I18nDescription(builder.getResourceProvider());
+        } else {
+            description = new SettableDescription();
+        }
         
         Annotation[][] annotations = method.getParameterAnnotations();
         Type[] types = method.getGenericParameterTypes();
@@ -173,6 +183,8 @@ class ParametricCallable implements CommandCallable {
 
         // Get permissions annotation
         permission = method.getAnnotation(Require.class);
+
+        messages = new Messages(builder.getResourceProvider());
     }
 
     @Override
@@ -192,7 +204,7 @@ class ParametricCallable implements CommandCallable {
         }
 
         final Object[] args = new Object[parameters.length];
-        ContextArgumentStack arguments = new ContextArgumentStack(context);
+        ContextArgumentStack arguments = new ContextArgumentStack(builder.getResourceProvider(), context);
         ParameterData parameter = null;
 
         try {
@@ -262,14 +274,14 @@ class ParametricCallable implements CommandCallable {
                 }
             }
         } catch (MissingParameterException e) {
-            throw new InvalidUsageException("Too few parameters!", this);
+            throw new InvalidUsageException(messages.getString("parameter.too.few"), this);
         } catch (UnconsumedParameterException e) {
-            throw new InvalidUsageException("Too many parameters! Unused parameters: " + e.getUnconsumed(), this);
+            throw new InvalidUsageException(messages.getString("parameter.too.many", e.getUnconsumed()), this);
         } catch (ParameterException e) {
             assert parameter != null;
             String name = parameter.getName();
 
-            throw new InvalidUsageException("For parameter '" + name + "': " + e.getMessage(), this);
+            throw new InvalidUsageException(messages.getString("invalid.unknown", name, e.getMessage()), this);
         } catch (InvocationTargetException e) {
             for (ExceptionConverter converter : builder.getExceptionConverters()) {
                 converter.convert(e.getCause());
@@ -327,15 +339,16 @@ class ParametricCallable implements CommandCallable {
      * @param existing the existing scoped context
      * @return the context to use
      */
-    private static ArgumentStack getScopedContext(Parameter parameter, ArgumentStack existing) {
+    private ArgumentStack getScopedContext(Parameter parameter, ArgumentStack existing) {
         if (parameter.getFlag() != null) {
             CommandContext context = existing.getContext();
             
             if (parameter.isValueFlag()) {
-                return new StringArgumentStack(context, context.getFlag(parameter.getFlag()), false);
+                return new StringArgumentStack(context, context.getFlag(parameter
+                        .getFlag()), false, builder.getResourceProvider());
             } else {
-                String v = context.hasFlag(parameter.getFlag()) ? "true" : "false";
-                return new StringArgumentStack(context, v, true);
+                String v = context.hasFlag(parameter.getFlag()) ? messages.getString("boolean.true") : messages.getString("boolean.false");
+                return new StringArgumentStack(context, v, true, builder.getResourceProvider());
             }
         }
         
@@ -398,10 +411,12 @@ class ParametricCallable implements CommandCallable {
         String[] defaultValue = parameter.getDefaultValue();
         if (defaultValue != null) {
             try {
-                return parameter.getBinding().bind(parameter, new StringArgumentStack(context, defaultValue, false), false);
+                return parameter.getBinding().bind(parameter, new
+                        StringArgumentStack(context, defaultValue, false, builder.getResourceProvider()),
+                        false);
             } catch (MissingParameterException e) {
                 throw new ParametricException(
-                        "The default value of the parameter using the binding " + 
+                        "The default value of the parameter using the binding " +
                         parameter.getBinding().getClass() + " in the method\n" +
                         method.toGenericString() + "\nis invalid");
             }
@@ -483,14 +498,14 @@ class ParametricCallable implements CommandCallable {
      * @param index the index
      * @return a generated name
      */
-    private static String generateName(Type type, Annotation classifier, int index) {
+    private String generateName(Type type, Annotation classifier, int index) {
         if (classifier != null) {
             return classifier.annotationType().getSimpleName().toLowerCase();
         } else {
             if (type instanceof Class<?>) {
                 return ((Class<?>) type).getSimpleName().toLowerCase();
             } else {
-                return "unknown" + index;
+                return messages.getString("parameter.unknown", index);
             }
         }
     }

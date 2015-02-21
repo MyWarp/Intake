@@ -31,6 +31,8 @@ import com.sk89q.intake.SettableParameter;
 import com.sk89q.intake.context.CommandContext;
 import com.sk89q.intake.context.CommandLocals;
 import com.sk89q.intake.util.auth.AuthorizationException;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,19 +43,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * A simple implementation of {@link Dispatcher}.
  */
 public class SimpleDispatcher implements Dispatcher {
 
+    private final Messages messages;
     private final Map<String, CommandMapping> commands = new HashMap<String, CommandMapping>();
     private final SettableDescription description = new SettableDescription();
 
     /**
      * Create a new instance.
+     *
+     * @param resourceProvider the ResourceProvider
      */
-    public SimpleDispatcher() {
-        description.getParameters().add(new SettableParameter("subcommand"));
+    public SimpleDispatcher(ResourceProvider resourceProvider) {
+        this.messages = new Messages(checkNotNull(resourceProvider));
+        description.getParameters().add(new SettableParameter(messages.getString("parameter.subcommand")));
         SettableParameter extraArgs = new SettableParameter("...");
         extraArgs.setOptional(true);
         description.getParameters().add(extraArgs);
@@ -118,7 +126,7 @@ public class SimpleDispatcher implements Dispatcher {
         Set<String> aliases = getPrimaryAliases();
 
         if (aliases.isEmpty()) {
-            throw new InvalidUsageException("This command has no sub-commands.", this);
+            throw new InvalidUsageException(messages.getString("subcommand.none"), this);
         } else if (split.length > 0) {
             String subCommand = split[0];
             String subArguments = Joiner.on(" ").join(Arrays.copyOfRange(split, 1, split.length));
@@ -143,7 +151,7 @@ public class SimpleDispatcher implements Dispatcher {
 
         }
 
-        throw new InvalidUsageException("Please choose a sub-command.", this, true);
+        throw new InvalidUsageException(messages.getString("subcommand.choose"), this, true);
     }
 
     @Override

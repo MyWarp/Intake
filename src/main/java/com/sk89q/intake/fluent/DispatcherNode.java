@@ -97,7 +97,7 @@ public class DispatcherNode {
      * @return an object to place sub-commands
      */
     public DispatcherNode group(String... alias) {
-        return group(new SimpleDispatcher(), alias);
+        return group(new SimpleDispatcher(graph.getResourceProvider()), alias);
     }
     
     /**

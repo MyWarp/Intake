@@ -23,6 +23,8 @@ import com.sk89q.intake.parametric.MissingParameterException;
 import com.sk89q.intake.context.CommandContext;
 import com.sk89q.intake.parametric.ParameterException;
 import com.sk89q.intake.parametric.ParametricBuilder;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 /**
  * Makes an instance of a {@link CommandContext} into a stack of arguments
@@ -31,6 +33,8 @@ import com.sk89q.intake.parametric.ParametricBuilder;
  * @see ParametricBuilder a user of this class
  */
 public class ContextArgumentStack implements ArgumentStack {
+
+    private final Messages messages;
     
     private final CommandContext context;
     private int index = 0;
@@ -38,10 +42,12 @@ public class ContextArgumentStack implements ArgumentStack {
     
     /**
      * Create a new instance using the given context.
-     * 
+     *
+     * @param resourceProvider the ResourceProvider
      * @param context the context
      */
-    public ContextArgumentStack(CommandContext context) {
+    public ContextArgumentStack(ResourceProvider resourceProvider, CommandContext context) {
+        this.messages = new Messages(resourceProvider);
         this.context = context;
     }
     
@@ -59,8 +65,8 @@ public class ContextArgumentStack implements ArgumentStack {
         try {
             return Integer.parseInt(next());
         } catch (NumberFormatException e) {
-            throw new ParameterException(
-                    "Expected a number, got '" + context.getString(index - 1) + "'");
+            throw new ParameterException(messages.getString("invalid.number",
+                    context.getString(index - 1)));
         }
     }
 
@@ -69,15 +75,15 @@ public class ContextArgumentStack implements ArgumentStack {
         try {
             return Double.parseDouble(next());
         } catch (NumberFormatException e) {
-            throw new ParameterException(
-                    "Expected a number, got '" + context.getString(index - 1) + "'");
+            throw new ParameterException(messages.getString("invalid.number",
+                    context.getString(index - 1)));
         }
     }
 
     @Override
     public Boolean nextBoolean() throws ParameterException {
         try {
-            return next().equalsIgnoreCase("true");
+            return next().equalsIgnoreCase(messages.getString("boolean.true"));
         } catch (IndexOutOfBoundsException e) {
             throw new MissingParameterException();
         }

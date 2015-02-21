@@ -22,6 +22,10 @@ package com.sk89q.intake.fluent;
 import com.sk89q.intake.dispatcher.Dispatcher;
 import com.sk89q.intake.dispatcher.SimpleDispatcher;
 import com.sk89q.intake.parametric.ParametricBuilder;
+import com.sk89q.intake.util.i18n.DefaultResourceProvider;
+import com.sk89q.intake.util.i18n.ResourceProvider;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A fluent interface to creating a command graph.
@@ -31,14 +35,26 @@ import com.sk89q.intake.parametric.ParametricBuilder;
  */
 public class CommandGraph {
 
+    private final ResourceProvider resourceProvider;
     private final DispatcherNode rootDispatcher;
     private ParametricBuilder builder;
 
     /**
      * Create a new command graph.
      */
-    public CommandGraph() {
-        SimpleDispatcher dispatcher = new SimpleDispatcher();
+    public CommandGraph () {
+        this(new DefaultResourceProvider());
+    }
+
+    /**
+     * Create a new command graph.
+     *
+     * @param resourceProvider the ResourceProvider that provides resources for all
+     *                         commands on this graph
+     */
+    public CommandGraph(ResourceProvider resourceProvider) {
+        this.resourceProvider = checkNotNull(resourceProvider);
+        SimpleDispatcher dispatcher = new SimpleDispatcher(resourceProvider);
         rootDispatcher = new DispatcherNode(this, null, dispatcher);
     }
     
@@ -81,4 +97,12 @@ public class CommandGraph {
         return rootDispatcher.getDispatcher();
     }
 
+    /**
+     * Get the ResourceProvider.
+     *
+     * @return the ResourceProvider
+     */
+    public ResourceProvider getResourceProvider() {
+        return resourceProvider;
+    }
 }

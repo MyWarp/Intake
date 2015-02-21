@@ -23,17 +23,33 @@ import com.sk89q.intake.parametric.MissingParameterException;
 import com.sk89q.intake.context.CommandContext;
 import com.sk89q.intake.parametric.ParameterException;
 import com.sk89q.intake.util.StringUtils;
+import com.sk89q.intake.util.i18n.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
 /**
  * A virtual scope that does not actually read from the underlying 
  * {@link CommandContext}.
  */
 public class StringArgumentStack implements ArgumentStack {
+
+    private final Messages messages;
     
     private final boolean nonNullBoolean;
     private final CommandContext context;
     private final String[] arguments;
     private int index = 0;
+
+    /**
+     * Create a new instance using the given context.
+     *
+     * @param context the context
+     * @param arguments an argument string to be parsed
+     * @param nonNullBoolean true to have {@link #nextBoolean()} return false instead of null
+     * @param resourceProvider the ResourceProvider
+     */
+    public StringArgumentStack(CommandContext context, String arguments, boolean nonNullBoolean, ResourceProvider resourceProvider) {
+        this(context, CommandContext.split(arguments), nonNullBoolean, resourceProvider);
+    }
     
     /**
      * Create a new instance using the given context.
@@ -41,27 +57,17 @@ public class StringArgumentStack implements ArgumentStack {
      * @param context the context
      * @param arguments a list of arguments
      * @param nonNullBoolean true to have {@link #nextBoolean()} return false instead of null
+     * @param resourceProvider the ResourceProvider
      */
-    public StringArgumentStack(
-            CommandContext context, String[] arguments, boolean nonNullBoolean) {
+    public StringArgumentStack(CommandContext context, String[] arguments, boolean nonNullBoolean,
+            ResourceProvider resourceProvider) {
         this.context = context;
         this.arguments = arguments;
         this.nonNullBoolean = nonNullBoolean;
+        this.messages = new Messages(resourceProvider);
     }
     
-    /**
-     * Create a new instance using the given context.
-     * 
-     * @param context the context
-     * @param arguments an argument string to be parsed
-     * @param nonNullBoolean true to have {@link #nextBoolean()} return false instead of null
-     */
-    public StringArgumentStack(
-            CommandContext context, String arguments, boolean nonNullBoolean) {
-        this.context = context;
-        this.arguments = CommandContext.split(arguments);
-        this.nonNullBoolean = nonNullBoolean;
-    }
+
 
     @Override
     public String next() throws ParameterException {
@@ -77,8 +83,8 @@ public class StringArgumentStack implements ArgumentStack {
         try {
             return Integer.parseInt(next());
         } catch (NumberFormatException e) {
-            throw new ParameterException(
-                    "Expected a number, got '" + context.getString(index - 1) + "'");
+            throw new ParameterException(messages.getString("invalid.number",
+                    context.getString(index - 1)));
         }
     }
 
@@ -87,15 +93,15 @@ public class StringArgumentStack implements ArgumentStack {
         try {
             return Double.parseDouble(next());
         } catch (NumberFormatException e) {
-            throw new ParameterException(
-                    "Expected a number, got '" + context.getString(index - 1) + "'");
+            throw new ParameterException(messages.getString("invalid.number",
+                    context.getString(index - 1)));
         }
     }
 
     @Override
     public Boolean nextBoolean() throws ParameterException {
         try {
-            return next().equalsIgnoreCase("true");
+            return next().equalsIgnoreCase(messages.getString("boolean.true"));
         } catch (IndexOutOfBoundsException e) {
             if (nonNullBoolean) { // Special case
                 return false;
