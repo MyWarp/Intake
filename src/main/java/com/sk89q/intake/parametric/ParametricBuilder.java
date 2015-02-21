@@ -132,14 +132,13 @@ public class ParametricBuilder {
      * a listener may be called, in the case of a {@link CommandException} being
      * thrown at any time before the appropriate listener or handler is called.
      * It is possible for a 
-     * {@link InvokeHandler#preInvoke(Object, Method, ParameterData[], Object[], CommandContext)} to
+     * {@link InvokeHandler#preInvoke(Object, Method, ParameterData[], Object[], CommandContext, com.sk89q.intake.context.CommandLocals)} to
      * be called for a invocation handler, but not the associated
-     * {@link InvokeHandler#postInvoke(Object, Method, ParameterData[], Object[], CommandContext)}.</p>
+     * {@link InvokeHandler#postInvoke(Object, Method, ParameterData[], Object[], CommandContext, com.sk89q.intake.context.CommandLocals)}.</p>
      * 
      * <p>An example of an invocation listener is one to handle
      * {@link Require}, by first checking to see if permission is available
-     * in a {@link InvokeHandler#preInvoke(Object, Method, ParameterData[],
-     * Object[], CommandContext)}
+     * in a {@link InvokeHandler#preInvoke(Object, Method, ParameterData[], Object[], CommandContext, com.sk89q.intake.context.CommandLocals)}
      * call. If permission is not found, then an appropriate {@link CommandException}
      * can be thrown to cease invocation.</p>
      * 
@@ -182,8 +181,6 @@ public class ParametricBuilder {
      *
      * <p>Bindings will still be resolved in the thread in which the
      * callable was called.</p>
-     *
-     * @return the command executor
      */
     public void setCommandExecutor(ExecutorService commandExecutor) {
         checkNotNull(commandExecutor, "commandExecutor");
@@ -295,7 +292,7 @@ public class ParametricBuilder {
     }
 
     /**
-     * Gets the ResourceProvider that provides resources to commands.
+     * Get the ResourceProvider that provides resources to commands.
      *
      * @return the ResourceProvider
      */
