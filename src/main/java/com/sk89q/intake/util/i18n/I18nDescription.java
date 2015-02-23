@@ -22,7 +22,7 @@ package com.sk89q.intake.util.i18n;
 import com.sk89q.intake.SettableDescription;
 
 /**
- * A Description implementation that translates help and short description.
+ * A Description implementation that provides localised help and short description.
  */
 public class I18nDescription extends SettableDescription {
 
