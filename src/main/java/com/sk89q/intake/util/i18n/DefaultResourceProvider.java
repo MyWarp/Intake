@@ -19,25 +19,19 @@
 
 package com.sk89q.intake.util.i18n;
 
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
  * An internal resource provider that handles Intake's default
- * internationalization. It is used if the user does not set a custom
- * {@link com.sk89q.intake.util.i18n.ResourceProvider}.
+ * localisation. It is used if the user does not set a custom
+ * {@link ResourceProvider}.
  */
 public final class DefaultResourceProvider implements ResourceProvider {
 
     private static final String RESOURCE_BUNDLE_NAME = "com.sk89q.intake.lang.messages";
 
     @Override
-    public final Locale getLocale() {
-        return Locale.getDefault();
-    }
-
-    @Override
-    public ResourceBundle getBundle(Locale locale) {
+    public ResourceBundle getBundle() {
         return ResourceBundle.getBundle(RESOURCE_BUNDLE_NAME);
     }
 

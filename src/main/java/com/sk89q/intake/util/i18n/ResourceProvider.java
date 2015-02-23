@@ -19,37 +19,33 @@
 
 package com.sk89q.intake.util.i18n;
 
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
- * Provides internationalization resources.
+ * Provides localised resources.
+ *
+ * <p>{@link #getBundle()} is called whenever a localised resource is needed. The
+ * {@link java.util.Locale} of that resource is completely controlled by the
+ * implementation of this class. If a Locale is needed (e.g. to control
+ * formatting) {@link ResourceBundle#getLocale()} is called.</p>
  */
 public interface ResourceProvider {
 
     /**
-     * Gets the Locale that is active when calling this method.
+     * Gets a ResourceBundle that contains the localised strings applicable in the
+     * context it is called.
      *
-     * @return the Locale
-     */
-    Locale getLocale();
-
-    /**
-     * Gets a ResourceBundle that contains the translated strings for the given
-     * Locale.
-     *
-     * @param locale the Locale
-     * @return the appliciable ResourceBundle
+     * @return the ResourceBundle
      * @throws java.util.MissingResourceException if such a ResourceBundle does
      * not exist
      */
-    ResourceBundle getBundle(Locale locale);
+    ResourceBundle getBundle();
 
     /**
      * Returns whether this implementation supports translations of command
      * annotations. If set to {@code true}, {@link com.sk89q.intake.Command#desc()}
      * and {@link com.sk89q.intake.Command#help()} entries will be parsed against
-     * the ResourceBundle returned by {@link #getBundle(java.util.Locale)}.
+     * the ResourceBundle returned by {@link #getBundle()}.
      *
      * @return {@code true} if command annotations are supported by this
      * implementation

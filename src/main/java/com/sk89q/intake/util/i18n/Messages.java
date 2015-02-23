@@ -21,13 +21,14 @@ package com.sk89q.intake.util.i18n;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Provides translated and formatted messages.
+ * Provides localised and formatted messages from a
+ * {@link com.sk89q.intake.util.i18n.ResourceProvider}.
  */
 public final class Messages {
 
@@ -44,34 +45,35 @@ public final class Messages {
     }
 
     /**
-     * Gets a translated string.
+     * Gets a localised string.
      *
-     * <p> If no translation exits, {@code $&#123;key&#125;} will be returned. </p>
+     * <p>If no localised string exits, {@code $&#123;key&#125;} will be returned.</p>
      *
      * @param key the key
      * @return the translated string
      */
     public final String getString(String key) {
         try {
-            return provider.getBundle(provider.getLocale()).getString(key);
+            return provider.getBundle().getString(key);
         } catch (MissingResourceException e) {
             return "{" + key + "}";
         }
     }
 
     /**
-     * Gets a translated and formatted string.
+     * Gets a localised and formatted string.
      *
-     * <p> If no translation exits, {@code $&#123;key&#125;:args} will be returned. </p>
+     * <p>If no localised string exits, {@code $&#123;key&#125;:args} will be returned.</p>
      *
      * @param key    the key
      * @param args   the arguments
      * @return a translated string
+     * @see java.text.MessageFormat
      */
     public final String getString(String key, Object... args) {
         try {
-            Locale locale = provider.getLocale();
-            MessageFormat format = new MessageFormat(provider.getBundle(locale).getString(key), locale);
+            ResourceBundle bundle = provider.getBundle();
+            MessageFormat format = new MessageFormat(bundle.getString(key), bundle.getLocale());
             return format.format(args);
         } catch (MissingResourceException e) {
             return "{" + key + "}:" + Arrays.toString(args);
