@@ -34,9 +34,4 @@ public final class DefaultResourceProvider implements ResourceProvider {
     public ResourceBundle getBundle() {
         return ResourceBundle.getBundle(RESOURCE_BUNDLE_NAME);
     }
-
-    @Override
-    public boolean supportsCommandAnnotations() {
-        return false;
-    }
 }

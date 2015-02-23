@@ -66,7 +66,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ParametricBuilder {
 
-    private final ResourceProvider resourceProvider;
+    private final ResourceProvider internalResourceProvider;
     private final Messages messages;
     private final Map<Type, Binding> bindings = new HashMap<Type, Binding>();
     private final List<InvokeListener> invokeListeners = new ArrayList<InvokeListener>();
@@ -74,7 +74,15 @@ public class ParametricBuilder {
     private Authorizer authorizer = new NullAuthorizer();
     private CommandCompleter defaultCompleter = new NullCompleter();
     private ExecutorService commandExecutor = MoreExecutors.sameThreadExecutor();
+    @Nullable
+    private ResourceProvider externalResourceProvider = null;
 
+    /**
+     * Create a new builder.
+     *
+     * <p>This method will install {@link PrimitiveBindings} and
+     * {@link StandardBindings} and default bindings. The build-in localization will be used.</p>
+     */
     public ParametricBuilder() {
         this (new DefaultResourceProvider());
     }
@@ -84,11 +92,13 @@ public class ParametricBuilder {
      * 
      * <p>This method will install {@link PrimitiveBindings} and 
      * {@link StandardBindings} and default bindings.</p>
+     *
+     * @param internalResourceProvider the ResourceProvider that is used to resolve internal messages at runtime
      */
-    public ParametricBuilder(ResourceProvider resourceProvider) {
-        this.resourceProvider = checkNotNull(resourceProvider);
-        this.messages = new Messages(resourceProvider);
-        addBinding(new PrimitiveBindings(resourceProvider));
+    public ParametricBuilder(ResourceProvider internalResourceProvider) {
+        this.internalResourceProvider = checkNotNull(internalResourceProvider);
+        this.messages = new Messages(internalResourceProvider);
+        addBinding(new PrimitiveBindings(internalResourceProvider));
         addBinding(new StandardBindings());
     }
 
@@ -299,8 +309,36 @@ public class ParametricBuilder {
      *
      * @return the ResourceProvider
      */
-    public ResourceProvider getResourceProvider() {
-        return resourceProvider;
+    protected ResourceProvider getInternalResourceProvider() {
+        return internalResourceProvider;
     }
 
+    /**
+     * Get the external resource provider that will be used to get localized
+     * resources for {@link Command#desc()} and {@link Command#help()} of commands
+     * created with this builder.
+     *
+     * <p>May return {@code null} if no external resource provider is set. In that
+     * case, commands are not localized.</p>
+     *
+     * @return the external resource provider or {@code null}
+     */
+    @Nullable
+    public ResourceProvider getExternalResourceProvider() {
+        return externalResourceProvider;
+    }
+
+    /**
+     * Set the external resource provider that will be used to get localized
+     * resources for {@link Command#desc()} and {@link Command#help()} of commands
+     * created with this builder.
+     *
+     * <p>May be {@code null} if no external resource provider is required. In that
+     * case, commands are not localized.</p>
+     *
+     * @param externalResourceProvider the external resource provider
+     */
+    public void setExternalResourceProvider(@Nullable ResourceProvider externalResourceProvider) {
+        this.externalResourceProvider = externalResourceProvider;
+    }
 }

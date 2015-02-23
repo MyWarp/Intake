@@ -75,8 +75,8 @@ class ParametricCallable implements CommandCallable {
         this.object = object;
         this.method = method;
 
-        if (builder.getResourceProvider().supportsCommandAnnotations()) {
-            description = new I18nDescription(builder.getResourceProvider());
+        if (builder.getExternalResourceProvider() != null) {
+            description = new I18nDescription(builder.getInternalResourceProvider());
         } else {
             description = new SettableDescription();
         }
@@ -184,7 +184,7 @@ class ParametricCallable implements CommandCallable {
         // Get permissions annotation
         permission = method.getAnnotation(Require.class);
 
-        messages = new Messages(builder.getResourceProvider());
+        messages = new Messages(builder.getInternalResourceProvider());
     }
 
     @Override
@@ -204,7 +204,7 @@ class ParametricCallable implements CommandCallable {
         }
 
         final Object[] args = new Object[parameters.length];
-        ContextArgumentStack arguments = new ContextArgumentStack(builder.getResourceProvider(), context);
+        ContextArgumentStack arguments = new ContextArgumentStack(builder.getInternalResourceProvider(), context);
         ParameterData parameter = null;
 
         try {
@@ -345,10 +345,10 @@ class ParametricCallable implements CommandCallable {
             
             if (parameter.isValueFlag()) {
                 return new StringArgumentStack(context, context.getFlag(parameter
-                        .getFlag()), false, builder.getResourceProvider());
+                        .getFlag()), false, builder.getInternalResourceProvider());
             } else {
                 String v = context.hasFlag(parameter.getFlag()) ? messages.getString("boolean.true") : messages.getString("boolean.false");
-                return new StringArgumentStack(context, v, true, builder.getResourceProvider());
+                return new StringArgumentStack(context, v, true, builder.getInternalResourceProvider());
             }
         }
         
@@ -412,7 +412,7 @@ class ParametricCallable implements CommandCallable {
         if (defaultValue != null) {
             try {
                 return parameter.getBinding().bind(parameter, new
-                        StringArgumentStack(context, defaultValue, false, builder.getResourceProvider()),
+                        StringArgumentStack(context, defaultValue, false, builder.getInternalResourceProvider()),
                         false);
             } catch (MissingParameterException e) {
                 throw new ParametricException(

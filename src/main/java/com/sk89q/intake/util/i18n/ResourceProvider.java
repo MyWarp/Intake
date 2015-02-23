@@ -41,15 +41,4 @@ public interface ResourceProvider {
      */
     ResourceBundle getBundle();
 
-    /**
-     * Returns whether this implementation supports translations of command
-     * annotations. If set to {@code true}, {@link com.sk89q.intake.Command#desc()}
-     * and {@link com.sk89q.intake.Command#help()} entries will be parsed against
-     * the ResourceBundle returned by {@link #getBundle()}.
-     *
-     * @return {@code true} if command annotations are supported by this
-     * implementation
-     */
-    boolean supportsCommandAnnotations();
-
 }
