@@ -76,7 +76,7 @@ class ParametricCallable implements CommandCallable {
         this.method = method;
 
         if (builder.getExternalResourceProvider() != null) {
-            description = new I18nDescription(builder.getInternalResourceProvider());
+            description = new I18nDescription(builder.getExternalResourceProvider());
         } else {
             description = new SettableDescription();
         }
