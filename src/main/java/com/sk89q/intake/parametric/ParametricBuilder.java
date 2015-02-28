@@ -210,13 +210,30 @@ public class ParametricBuilder {
         checkNotNull(dispatcher);
         checkNotNull(object);
 
+        for (Map.Entry<Command, CommandCallable> entry : build(object).entrySet()) {
+            dispatcher.registerCommand(entry.getValue(), entry.getKey().aliases());
+        }
+    }
+
+    /**
+     * Build a map of commands and command callables from methods specially annotated
+     * with {@link Command} (and other relevant annotations).
+     *
+     * @param object the object contain the methods
+     * @throws ParametricException thrown if the commands cannot be registered
+     */
+    public Map<Command, CommandCallable> build(Object object) throws ParametricException {
+        checkNotNull(object);
+
+        Map<Command, CommandCallable> ret = new HashMap<Command, CommandCallable>();
         for (Method method : object.getClass().getDeclaredMethods()) {
             Command definition = method.getAnnotation(Command.class);
             if (definition != null) {
                 CommandCallable callable = build(object, method, definition);
-                dispatcher.registerCommand(callable, definition.aliases());
+                ret.put(definition, callable);
             }
         }
+        return ret;
     }
 
     /**
