@@ -24,11 +24,13 @@ import com.sk89q.intake.argument.ArgumentParseException;
 import com.sk89q.intake.argument.CommandArgs;
 import com.sk89q.intake.parametric.Provider;
 import com.sk89q.intake.parametric.annotation.Validate;
+import com.sk89q.intake.parametric.provider.exception.StringFormatException;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 class StringProvider implements Provider<String> {
 
@@ -70,10 +72,7 @@ class StringProvider implements Provider<String> {
 
                 if (!validate.regex().isEmpty()) {
                     if (!string.matches(validate.regex())) {
-                        throw new ArgumentParseException(
-                                String.format(
-                                        "The given text doesn't match the right format (technically speaking, the 'format' is %s)",
-                                        validate.regex()));
+                        throw new StringFormatException(validate.regex());
                     }
                 }
             }

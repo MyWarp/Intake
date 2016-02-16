@@ -19,23 +19,20 @@
 
 package com.sk89q.intake.argument;
 
-import com.google.common.collect.Lists;
+/**
+ * Thrown when a flag is already present within the command.
+ */
+public class AlreadyPresentFlagException extends FlagException {
 
-import java.util.List;
+  public AlreadyPresentFlagException(char flagName) {
+    super(msg(flagName), flagName);
+  }
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  public AlreadyPresentFlagException(Throwable cause, char flagName) {
+    super(msg(flagName), cause, flagName);
+  }
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  private static String msg(char flagName) {
+    return "Value flag '" + flagName + "' already given";
+  }
 }

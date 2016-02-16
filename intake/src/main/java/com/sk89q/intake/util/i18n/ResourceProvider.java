@@ -17,25 +17,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.util.i18n;
 
-import com.google.common.collect.Lists;
+/**
+ * Provides localised resources.
+ *
+ * <p>Whenever a resource is needed, {@link #getString(String)} is called. The implementation must resolve the resource
+ * based on the given {@code key}, e.g. by using a {@link java.util.ResourceBundle}.</p>
+ */
+public interface ResourceProvider {
 
-import java.util.List;
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  /**
+   * Gets the message that is associated with the given {@code key}.
+   *
+   * @param key the key
+   * @return the corresponding message
+   */
+  String getString(String key);
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

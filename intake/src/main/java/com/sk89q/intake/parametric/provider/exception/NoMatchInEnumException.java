@@ -17,25 +17,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.parametric.provider.exception;
 
-import com.google.common.collect.Lists;
+import com.sk89q.intake.argument.ArgumentParseException;
 
-import java.util.List;
+/**
+ * Thrown when a given input does not match any of the enum constants.
+ */
+public class NoMatchInEnumException extends ArgumentParseException {
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  private final String enumName;
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public NoMatchInEnumException(String enumName) {
+    super(String.format("No matching value found in the '%s' list.", enumName));
+    this.enumName = enumName;
+  }
+
+  public String getEnumName() {
+    return enumName;
+  }
 }

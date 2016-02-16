@@ -29,14 +29,6 @@ import com.sk89q.intake.parametric.annotation.Text;
 
 public class UniverseCommands {
 
-    private static double fahrenheitToCelsius(double temp) {
-        return (temp -  32) * 5.0 / 9.0;
-    }
-
-    private static double celsiusToFahrenheit(double temp) {
-        return temp * 9.0 / 5.0 + 32;
-    }
-
     @Command(aliases = "settype", desc = "Set the type of an object")
     @Require("body.settype")
     public void setType(Body body, CelestialType type) {
@@ -47,7 +39,7 @@ public class UniverseCommands {
     @Require("body.settemp")
     public void setTemp(Body body, double meanTemp, @Switch('f') boolean inFahrenheit) {
         if (inFahrenheit) {
-            meanTemp = fahrenheitToCelsius(meanTemp);
+            meanTemp = TempUtil.fahrenheitToCelsius(meanTemp);
         }
         body.setMeanTemperature(meanTemp);
     }
@@ -65,7 +57,7 @@ public class UniverseCommands {
     public void info(Body body, @Switch('f') boolean inFahrenheit) {
         System.out.println("type: " + body.getType());
         if (inFahrenheit) {
-            System.out.println("mean temp: " + celsiusToFahrenheit(body.getMeanTemperature()) + " deg F");
+            System.out.println("mean temp: " + TempUtil.celsiusToFahrenheit(body.getMeanTemperature()) + " deg F");
         } else {
             System.out.println("mean temp: " + body.getMeanTemperature() + " deg C");
         }

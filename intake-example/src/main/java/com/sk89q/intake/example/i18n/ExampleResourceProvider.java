@@ -17,25 +17,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.example.i18n;
 
-import com.google.common.collect.Lists;
+import com.sk89q.intake.example.i18n.util.Messages;
+import com.sk89q.intake.util.i18n.ResourceProvider;
 
-import java.util.List;
+public class ExampleResourceProvider implements ResourceProvider {
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  private final Messages msg = new Messages(I18nExample.RESOURCE_NAME);
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  @Override
+  public String getString(String key) {
+    return msg.getString(key);
+  }
 }

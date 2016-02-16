@@ -19,10 +19,17 @@
 
 package com.sk89q.intake.parametric;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Chars;
-import com.sk89q.intake.*;
+import com.sk89q.intake.Command;
+import com.sk89q.intake.CommandCallable;
+import com.sk89q.intake.Description;
+import com.sk89q.intake.ImmutableDescription;
+import com.sk89q.intake.InvocationCommandException;
+import com.sk89q.intake.Require;
 import com.sk89q.intake.argument.Namespace;
 import com.sk89q.intake.parametric.handler.InvokeListener;
 
@@ -33,8 +40,6 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * The implementation of a {@link CommandCallable} for the
@@ -113,6 +118,7 @@ final class MethodCallable extends AbstractParametricCallable {
         ArgumentParser parser = parserBuilder.build();
 
         ImmutableDescription.Builder descBuilder = new ImmutableDescription.Builder()
+                .setResourceProvider(builder.getResourceProvider())
                 .setParameters(parser.getUserParameters())
                 .setShortDescription(!definition.desc().isEmpty() ? definition.desc() : null)
                 .setHelp(!definition.help().isEmpty() ? definition.help() : null)

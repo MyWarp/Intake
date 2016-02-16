@@ -42,9 +42,10 @@ public interface ExceptionConverter {
      * {@link InvocationCommandException} should be thrown to wrap the exception.</p>
      * 
      * @param t The throwable
+     * @param context the context in which {@code t} was thrown
      * @throws CommandException If there is a problem with the command
      * @throws InvocationCommandException If there is a problem with command invocation
      */
-    void convert(Throwable t) throws CommandException, InvocationCommandException;
+    void convert(Throwable t, ExceptionContext context) throws CommandException, InvocationCommandException;
 
 }

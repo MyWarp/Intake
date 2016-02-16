@@ -22,11 +22,15 @@ package com.sk89q.intake.parametric.provider;
 import com.sk89q.intake.argument.ArgumentParseException;
 import com.sk89q.intake.parametric.Provider;
 import com.sk89q.intake.parametric.annotation.Range;
+import com.sk89q.intake.parametric.provider.exception.NonnumericalInputException;
+import com.sk89q.intake.parametric.provider.exception.OverRangeException;
+import com.sk89q.intake.parametric.provider.exception.UnderRangeException;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 abstract class NumberProvider<T extends Number> implements Provider<T> {
 
@@ -56,7 +60,7 @@ abstract class NumberProvider<T extends Number> implements Provider<T> {
         try {
             return Double.parseDouble(input);
         } catch (NumberFormatException ignored) {
-            throw new ArgumentParseException(String.format("Expected '%s' to be a number", input));
+            throw new NonnumericalInputException(input);
         }
     }
 
@@ -72,29 +76,9 @@ abstract class NumberProvider<T extends Number> implements Provider<T> {
             if (modifier instanceof Range) {
                 Range range = (Range) modifier;
                 if (number < range.min()) {
-                    throw new ArgumentParseException(String.format("A valid value is greater than or equal to %s (you entered %s)", range.min(), number));
+                    throw new UnderRangeException(number, range.min());
                 } else if (number > range.max()) {
-                    throw new ArgumentParseException(String.format("A valid value is less than or equal to %s (you entered %s)", range.max(), number));
-                }
-            }
-        }
-    }
-
-    /**
-     * Validate a number value using relevant modifiers.
-     *
-     * @param number the number
-     * @param modifiers the list of modifiers to scan
-     * @throws ArgumentParseException on a validation error
-     */
-    protected static void validate(int number, List<? extends Annotation> modifiers) throws ArgumentParseException {
-        for (Annotation modifier : modifiers) {
-            if (modifier instanceof Range) {
-                Range range = (Range) modifier;
-                if (number < range.min()) {
-                    throw new ArgumentParseException(String.format("A valid value is greater than or equal to %s (you entered %s)", range.min(), number));
-                } else if (number > range.max()) {
-                    throw new ArgumentParseException(String.format("A valid value is less than or equal to %s (you entered %s)", range.max(), number));
+                    throw new OverRangeException(number, range.max());
                 }
             }
         }

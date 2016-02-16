@@ -17,25 +17,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.dispatcher;
 
-import com.google.common.collect.Lists;
+import com.sk89q.intake.CommandCallable;
+import com.sk89q.intake.InvalidUsageException;
 
 import java.util.List;
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+/**
+ * Thrown when a command wants to execute a sub-command but no sub-commands exist.
+ */
+public final class NoSubcommandsException extends InvalidUsageException {
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  NoSubcommandsException(CommandCallable command, List<String> aliasStack) {
+    super("This command has no sub-commands.", command, aliasStack);
+  }
 }
