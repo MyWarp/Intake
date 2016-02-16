@@ -50,11 +50,11 @@ public class SimpleDispatcher implements Dispatcher {
     public SimpleDispatcher() {
         List<Parameter> parameters = Lists.newArrayList();
 
-        parameters.add(
-                new ImmutableParameter.Builder()
-                        .setName("subcommand")
-                        .setOptionType(OptionType.positional())
-                        .build());
+//        parameters.add(
+//                new ImmutableParameter.Builder()
+//                        .setName("subcommand")
+//                        .setOptionType(OptionType.positional())
+//                        .build());
 
         parameters.add(
                 new ImmutableParameter.Builder()
@@ -126,7 +126,7 @@ public class SimpleDispatcher implements Dispatcher {
         Set<String> aliases = getPrimaryAliases();
 
         if (aliases.isEmpty()) {
-            throw new InvalidUsageException("This command has no sub-commands.", this, parentCommands);
+            throw new NoSubcommandsException(this, parentCommands);
         } else if (split.length > 0) {
             String subCommand = split[0];
             String subArguments = Joiner.on(" ").join(Arrays.copyOfRange(split, 1, split.length));
@@ -151,7 +151,7 @@ public class SimpleDispatcher implements Dispatcher {
 
         }
 
-        throw new InvalidUsageException("Please choose a sub-command.", this, parentCommands, true);
+        throw new SubcommandRequiredException(this, parentCommands);
     }
 
     @Override

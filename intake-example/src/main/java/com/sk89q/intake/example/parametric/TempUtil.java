@@ -17,25 +17,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.example.parametric;
 
-import com.google.common.collect.Lists;
+public class TempUtil {
 
-import java.util.List;
+  private TempUtil() {
+  }
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  public static double fahrenheitToCelsius(double temp) {
+      return (temp -  32) * 5.0 / 9.0;
+  }
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public static double celsiusToFahrenheit(double temp) {
+      return temp * 9.0 / 5.0 + 32;
+  }
 }

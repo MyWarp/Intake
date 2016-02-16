@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
 public class ArgumentParseException extends ArgumentException {
 
     @Nullable
-    private final Parameter parameter;
+    private Parameter parameter;
 
     public ArgumentParseException(String message) {
         super(message);
@@ -54,6 +54,10 @@ public class ArgumentParseException extends ArgumentException {
     @Nullable
     public Parameter getParameter() {
         return parameter;
+    }
+
+    protected void setParameter(@Nullable Parameter parameter) {
+        this.parameter = parameter;
     }
 
 }

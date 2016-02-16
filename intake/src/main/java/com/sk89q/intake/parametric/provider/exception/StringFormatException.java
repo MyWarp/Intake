@@ -17,25 +17,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.intake.argument;
+package com.sk89q.intake.parametric.provider.exception;
 
-import com.google.common.collect.Lists;
+import com.sk89q.intake.argument.ArgumentParseException;
 
-import java.util.List;
+/**
+ * Thrown when a string input does not match the expected format.
+ */
+public class StringFormatException extends ArgumentParseException {
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  private final String format;
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public StringFormatException(String format) {
+    super(String.format("The given text doesn't match the right format (technically speaking, the 'format' is %s)",
+                        format));
+    this.format = format;
+  }
+
+  public String getFormat() {
+    return format;
+  }
 }

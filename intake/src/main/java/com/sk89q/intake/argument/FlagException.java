@@ -19,23 +19,31 @@
 
 package com.sk89q.intake.argument;
 
-import com.google.common.collect.Lists;
+/**
+ * Flag exception occur when there is a problem with the user-provided command flags.
+ *
+ * @see AlreadyPresentFlagException
+ * @see MissingFlagValueException
+ */
+public class FlagException extends Exception {
 
-import java.util.List;
+  private final char flagName;
 
-public class ContextArgsTest extends AbstractCommandArgsTest {
+  public FlagException(char flagName) {
+    this.flagName = flagName;
+  }
 
-    @Override
-    protected CommandArgs createCommandArgs(List<String> args) {
-        try {
-            List<String> newArgs = Lists.newArrayList();
-            newArgs.add("_");
-            newArgs.addAll(args);
-            String[] newArgsArray = new String[newArgs.size()];
-            newArgs.toArray(newArgsArray);
-            return new ContextArgs(new CommandContext(newArgsArray));
-        } catch (FlagException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public FlagException(String message, char flagName) {
+    super(message);
+    this.flagName = flagName;
+  }
+
+  public FlagException(String message, Throwable cause, char flagName) {
+    super(message, cause);
+    this.flagName = flagName;
+  }
+
+  public char getFlagName() {
+    return flagName;
+  }
 }

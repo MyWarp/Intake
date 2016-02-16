@@ -19,24 +19,24 @@
 
 package com.sk89q.intake.argument;
 
-import com.google.common.collect.ImmutableSet;
-import com.sk89q.intake.CommandException;
-import org.junit.Test;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import com.google.common.collect.ImmutableSet;
+
+import org.junit.Test;
+
 public class CommandContextTest {
 
-    public void testBuilderArguments() throws CommandException {
+    public void testBuilderArguments() throws FlagException {
         CommandContext context = new CommandContext.Builder().setArguments(new String[] { "test" }).build();
         assertThat(context.getCommand(), equalTo("_"));
         assertThat(context.getString(0), equalTo("test"));
         assertThat(context.argsLength(), is(1));
     }
 
-    public void testBuilderCommandAndArguments() throws CommandException {
+    public void testBuilderCommandAndArguments() throws FlagException {
         CommandContext context = new CommandContext.Builder().setCommandAndArguments(new String[] { "action", "test" }).build();
         assertThat(context.getCommand(), equalTo("action"));
         assertThat(context.getString(0), equalTo("test"));
