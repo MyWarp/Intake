@@ -155,44 +155,39 @@ public class SimpleDispatcher implements Dispatcher {
             throw new NoSubcommandsException(this, parentCommands);
         } else if (split.length > 0) {
             String subCommand = split[0];
-            String subArguments = Joiner.on(" ").join(Arrays.copyOfRange(split, 1, split.length));
-            List<String> subParents = ImmutableList.<String>builder().addAll(parentCommands).add(subCommand).build();
             CommandMapping mapping = get(subCommand);
 
             if (mapping != null) {
-                try {
-                    mapping.getCallable().call(subArguments, namespace, subParents);
-                } catch (AuthorizationException e) {
-                    throw e;
-                } catch (CommandException e) {
-                    throw e;
-                } catch (InvocationCommandException e) {
-                    throw e;
-                } catch (Throwable t) {
-                    throw new InvocationCommandException(t);
-                }
+                String subArguments = Joiner.on(" ").join(Arrays.copyOfRange(split, 1, split.length));
+                List<String> subParents = ImmutableList.<String>builder().addAll(parentCommands).add(subCommand).build();
 
+                execute(mapping, subArguments, namespace, subParents);
                 return true;
             }
 
             if (this.defaultMapping != null) {
-                try {
-                    this.defaultMapping.getCallable().call(subArguments, namespace, subParents);
-                } catch (AuthorizationException e) {
-                    throw e;
-                } catch (CommandException e) {
-                    throw e;
-                } catch (InvocationCommandException e) {
-                    throw e;
-                } catch (Throwable t) {
-                    throw new InvocationCommandException(t);
-                }
-
+                execute(defaultMapping, arguments, namespace, parentCommands);
                 return true;
             }
         }
 
         throw new SubcommandRequiredException(this, parentCommands);
+    }
+
+    private void execute(CommandMapping commandMapping, String arguments, Namespace namespace, List<String> parents)
+        throws InvocationCommandException, CommandException, AuthorizationException {
+
+        try {
+            commandMapping.getCallable().call(arguments, namespace, parents);
+        } catch (AuthorizationException e) {
+            throw e;
+        } catch (CommandException e) {
+            throw e;
+        } catch (InvocationCommandException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new InvocationCommandException(t);
+        }
     }
 
     @Override
