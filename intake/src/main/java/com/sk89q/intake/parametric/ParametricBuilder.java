@@ -30,6 +30,7 @@ import com.sk89q.intake.completion.CommandCompleter;
 import com.sk89q.intake.completion.NullCompleter;
 import com.sk89q.intake.dispatcher.Dispatcher;
 import com.sk89q.intake.parametric.handler.DefaultExceptionConverter;
+import com.sk89q.intake.Default;
 import com.sk89q.intake.parametric.handler.ExceptionConverter;
 import com.sk89q.intake.parametric.handler.InvokeHandler;
 import com.sk89q.intake.parametric.handler.InvokeListener;
@@ -140,14 +141,20 @@ public class ParametricBuilder {
     checkNotNull(dispatcher);
     checkNotNull(object);
 
-    for (Method method : object.getClass().getDeclaredMethods()) {
-      Command definition = method.getAnnotation(Command.class);
-      if (definition != null) {
-        CommandCallable callable = build(object, method);
-        dispatcher.registerCommand(callable, definition.aliases());
-      }
+        for (Method method : object.getClass().getDeclaredMethods()) {
+            Command definition = method.getAnnotation(Command.class);
+            if (definition != null) {
+                CommandCallable callable = build(object, method);
+
+                Default defaultDefinition = method.getAnnotation(Default.class);
+                if (defaultDefinition != null) {
+                    dispatcher.registerDefaultCommand(callable, defaultDefinition, definition.aliases());
+                } else {
+                    dispatcher.registerCommand(callable, definition.aliases());
+                }
+            }
+        }
     }
-  }
 
   /**
    * Build a {@link CommandCallable} for the given method.
