@@ -26,7 +26,7 @@ subprojects {
     apply plugin: 'checkstyle'
     apply plugin: 'com.jfrog.artifactory-upload'
 
-    group = 'com.sk89q.intake'
+    group = 'de.minehattan.intake'
     version = '4.2-SNAPSHOT'
 
     checkstyle.configFile = new File(rootProject.projectDir, "config/checkstyle/checkstyle.xml")
