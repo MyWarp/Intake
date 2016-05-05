@@ -1,7 +1,5 @@
 buildscript {
     repositories {
-        mavenCentral()
-        maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
         jcenter()
     }
 
@@ -16,15 +14,21 @@ buildscript {
     }
 }
 
-if (!project.hasProperty("artifactory_contextUrl")) ext.artifactory_contextUrl = "http://localhost"
-if (!project.hasProperty("artifactory_user")) ext.artifactory_user = "guest"
-if (!project.hasProperty("artifactory_password")) ext.artifactory_password = ""
+//build variables
+if (!project.hasProperty("webdav_url")){
+    ext.webdav_url = "localhost"
+}
+if (!project.hasProperty("webdav_user")){
+    ext.webdav_user = "guest"
+}
+if (!project.hasProperty("webdav_password")){
+    ext.webdav_password = ""
+}
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'checkstyle'
-    apply plugin: 'com.jfrog.artifactory-upload'
 
     group = 'de.minehattan.intake'
     version = '4.2-SNAPSHOT'
@@ -35,9 +39,8 @@ subprojects {
     targetCompatibility = 1.6
 
     repositories {
+        jcenter()
         maven { url "http://maven.sk89q.com/repo/" }
-        mavenCentral()
-        maven { url "http://repo.maven.apache.org/maven2" }
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -61,24 +64,22 @@ subprojects {
     build.dependsOn(sourcesJar)
     build.dependsOn(javadocJar)
 
-    artifactory {
-        contextUrl = "${artifactory_contextUrl}"
-        publish {
-            repository {
-                repoKey = project.version.contains("SNAPSHOT") ? 'libs-snapshot-local' : 'libs-release-local'
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-                maven = true
-                
-            }
-        }
+    configurations {
+        deployerJars
+    }
 
-        resolve {
-            repository {
-                repoKey = 'repo'
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-                maven = true
+    dependencies {
+        // to use WebDav protocol on upload
+        deployerJars "org.apache.maven.wagon:wagon-webdav-jackrabbit:2.10"
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                configuration = configurations.deployerJars
+                repository(url: "dav:" + webdav_url) {
+                    authentication(userName: webdav_user, password: webdav_password)
+                }
             }
         }
     }
