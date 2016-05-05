@@ -16,7 +16,7 @@ buildscript {
 
 //build variables
 if (!project.hasProperty("webdav_url")){
-    ext.webdav_url = "localhost"
+    ext.webdav_url = "http://localhost"
 }
 if (!project.hasProperty("webdav_user")){
     ext.webdav_user = "guest"
@@ -70,7 +70,7 @@ subprojects {
 
     dependencies {
         // to use WebDav protocol on upload
-        deployerJars "org.apache.maven.wagon:wagon-webdav-jackrabbit:2.10"
+        deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
     }
 
     uploadArchives {
