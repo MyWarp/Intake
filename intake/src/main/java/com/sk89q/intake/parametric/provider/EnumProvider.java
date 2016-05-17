@@ -24,6 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Lists;
 import com.sk89q.intake.argument.ArgumentException;
 import com.sk89q.intake.argument.CommandArgs;
+import com.sk89q.intake.argument.Namespace;
 import com.sk89q.intake.parametric.Provider;
 import com.sk89q.intake.parametric.ProvisionException;
 import com.sk89q.intake.parametric.provider.exception.NoMatchInEnumException;
@@ -77,10 +78,10 @@ public class EnumProvider<T extends Enum<T>> implements Provider<T> {
     throw new NoMatchInEnumException(enumClass.getSimpleName());
   }
 
-  @Override
-  public List<String> getSuggestions(String prefix) {
-    List<String> suggestions = Lists.newArrayList();
-    String test = simplify(prefix);
+    @Override
+    public List<String> getSuggestions(String prefix, Namespace locals) {
+        List<String> suggestions = Lists.newArrayList();
+        String test = simplify(prefix);
 
     for (T entry : enumClass.getEnumConstants()) {
       String name = simplify(entry.name());
