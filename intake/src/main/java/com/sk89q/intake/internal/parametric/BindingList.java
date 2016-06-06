@@ -19,29 +19,30 @@
 
 package com.sk89q.intake.internal.parametric;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import com.sk89q.intake.parametric.Binding;
 import com.sk89q.intake.parametric.Key;
 import com.sk89q.intake.parametric.Provider;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Type;
-import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nullable;
 
 class BindingList {
 
-    private final Multimap<Type, BindingEntry<?>> providers = Multimaps.newMultimap(Maps.<Type, Collection<BindingEntry<?>>>newHashMap(), new CollectionSupplier());
+    private final Multimap<Type, BindingEntry<?>> providers = HashMultimap.create();
 
     public <T> void addBinding(Key<T> key, Provider<T> provider) {
         checkNotNull(key, "key");
         checkNotNull(provider, "provider");
-        providers.put(key.getType(), new BindingEntry<T>(key, provider));
+
+        if (!providers.put(key.getType(), new BindingEntry<T>(key, provider))) {
+            throw new IllegalArgumentException(
+                "Failed to register " + provider + ", as a provider is already registered for " + key + "!");
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -49,7 +50,7 @@ class BindingList {
     public <T> Binding<T> getBinding(Key<T> key) {
         checkNotNull(key, "key");
         for (BindingEntry binding : providers.get(key.getType())) {
-            if (binding.getKey().matches(key)) {
+            if (binding.getKey().equals(key)) {
                 return (Binding<T>) binding;
             }
         }
@@ -57,14 +58,7 @@ class BindingList {
         return null;
     }
 
-    private static class CollectionSupplier implements Supplier<Collection<BindingEntry<?>>> {
-        @Override
-        public Collection<BindingEntry<?>> get() {
-            return Sets.newTreeSet();
-        }
-    }
-
-    private static final class BindingEntry<T> implements Binding<T>, Comparable<BindingEntry<?>> {
+    private static final class BindingEntry<T> implements Binding<T> {
         private final Key<T> key;
         private final Provider<T> provider;
 
@@ -84,8 +78,28 @@ class BindingList {
         }
 
         @Override
-        public int compareTo(BindingEntry<?> o) {
-            return key.compareTo(o.key);
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            BindingEntry<?> that = (BindingEntry<?>) o;
+
+            if (key != null ? !key.equals(that.key) : that.key != null) {
+                return false;
+            }
+            return provider != null ? provider.equals(that.provider) : that.provider == null;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key != null ? key.hashCode() : 0;
+            result = 31 * result + (provider != null ? provider.hashCode() : 0);
+            return result;
         }
 
         @Override
