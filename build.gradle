@@ -30,7 +30,7 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'checkstyle'
 
-    group = 'de.minehattan.intake'
+    group = 'io.github.mywarp.intake'
     version = '4.2-SNAPSHOT'
 
     checkstyle.configFile = new File(rootProject.projectDir, "config/checkstyle/checkstyle.xml")
