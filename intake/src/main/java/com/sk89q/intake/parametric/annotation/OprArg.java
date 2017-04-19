@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER, ElementType.FIELD })
-public @interface Optional {
+public @interface OprArg {
     
     /**
      * The default value to use if no value is set.

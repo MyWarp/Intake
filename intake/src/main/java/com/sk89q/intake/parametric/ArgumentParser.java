@@ -19,6 +19,8 @@
 
 package com.sk89q.intake.parametric;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,10 +28,19 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.sk89q.intake.*;
-import com.sk89q.intake.argument.*;
+import com.sk89q.intake.ImmutableParameter;
+import com.sk89q.intake.OptionType;
+import com.sk89q.intake.Parameter;
+import com.sk89q.intake.argument.ArgumentException;
+import com.sk89q.intake.argument.ArgumentParseException;
+import com.sk89q.intake.argument.Arguments;
+import com.sk89q.intake.argument.CommandArgs;
+import com.sk89q.intake.argument.CommandContext;
+import com.sk89q.intake.argument.MissingArgumentException;
+import com.sk89q.intake.argument.Namespace;
+import com.sk89q.intake.argument.UnusedArgumentException;
 import com.sk89q.intake.parametric.annotation.Classifier;
-import com.sk89q.intake.parametric.annotation.Optional;
+import com.sk89q.intake.parametric.annotation.OprArg;
 import com.sk89q.intake.parametric.annotation.Switch;
 
 import java.lang.annotation.Annotation;
@@ -39,8 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An argument parser takes in a list of tokenized arguments and parses
@@ -271,21 +280,23 @@ public final class ArgumentParser {
 
                     if (annotation instanceof Switch) {
                         if (optionType != null) {
-                            throw new IllegalParameterException("Both @Optional and @Switch were found on the same element for parameter #" + index);
+                          throw new IllegalParameterException(
+                              "Both @OprArg and @Switch were found on the same element for parameter #" + index);
                         }
 
                         optionType = type == boolean.class ? OptionType.flag(((Switch) annotation).value()) : OptionType.valueFlag(((Switch) annotation).value());
 
-                    } else if (annotation instanceof Optional) {
+                    } else if (annotation instanceof OprArg) {
                         if (optionType != null) {
-                            throw new IllegalParameterException("Both @Optional and @Switch were found on the same element for parameter #" + index);
+                          throw new IllegalParameterException(
+                              "Both @OprArg and @Switch were found on the same element for parameter #" + index);
                         }
 
                         seenOptionalParameter = true;
 
                         optionType = OptionType.optionalPositional();
 
-                        String[] value = ((Optional) annotation).value();
+                      String[] value = ((OprArg) annotation).value();
                         if (value.length > 0) {
                             defaultValue = ImmutableList.copyOf(value);
                         }
