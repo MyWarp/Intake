@@ -22,15 +22,15 @@ package com.sk89q.intake.parametric;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.AbstractListeningExecutorService;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.CommandCallable;
 import com.sk89q.intake.CommandException;
+import com.sk89q.intake.Default;
 import com.sk89q.intake.completion.CommandCompleter;
 import com.sk89q.intake.completion.NullCompleter;
 import com.sk89q.intake.dispatcher.Dispatcher;
 import com.sk89q.intake.parametric.handler.DefaultExceptionConverter;
-import com.sk89q.intake.Default;
 import com.sk89q.intake.parametric.handler.ExceptionConverter;
 import com.sk89q.intake.parametric.handler.InvokeHandler;
 import com.sk89q.intake.parametric.handler.InvokeListener;
@@ -39,11 +39,15 @@ import com.sk89q.intake.util.auth.NullAuthorizer;
 import com.sk89q.intake.util.i18n.ResourceProvider;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Keeps a mapping of types to bindings and generates commands from classes with appropriate annotations.
@@ -55,7 +59,8 @@ public class ParametricBuilder {
   private final LinkedList<ExceptionConverter> exceptionConverters = Lists.newLinkedList();
   private Authorizer authorizer = new NullAuthorizer();
   private CommandCompleter defaultCompleter = new NullCompleter();
-  private CommandExecutor commandExecutor = new CommandExecutorWrapper(MoreExecutors.sameThreadExecutor());
+  // see comment on DirectExecutorService for its reason of being
+  private CommandExecutor commandExecutor = new CommandExecutorWrapper(new DirectExecutorService());
   @Nullable
   private ResourceProvider resourceProvider;
 
@@ -141,20 +146,20 @@ public class ParametricBuilder {
     checkNotNull(dispatcher);
     checkNotNull(object);
 
-        for (Method method : object.getClass().getDeclaredMethods()) {
-            Command definition = method.getAnnotation(Command.class);
-            if (definition != null) {
-                CommandCallable callable = build(object, method);
+    for (Method method : object.getClass().getDeclaredMethods()) {
+      Command definition = method.getAnnotation(Command.class);
+      if (definition != null) {
+        CommandCallable callable = build(object, method);
 
-                Default defaultDefinition = method.getAnnotation(Default.class);
-                if (defaultDefinition != null) {
-                    dispatcher.registerDefaultCommand(callable, defaultDefinition, definition.aliases());
-                } else {
-                    dispatcher.registerCommand(callable, definition.aliases());
-                }
-            }
+        Default defaultDefinition = method.getAnnotation(Default.class);
+        if (defaultDefinition != null) {
+          dispatcher.registerDefaultCommand(callable, defaultDefinition, definition.aliases());
+        } else {
+          dispatcher.registerCommand(callable, definition.aliases());
         }
+      }
     }
+  }
 
   /**
    * Build a {@link CommandCallable} for the given method.
@@ -178,7 +183,8 @@ public class ParametricBuilder {
    *
    * <p>If no resource provider is configured, description, help and usage override of commands build by this builder
    * will return the configured Strings directly.</p>
-   * @param resourceProvider  the resource provider
+   *
+   * @param resourceProvider the resource provider
    */
   public void setResourceProvider(ResourceProvider resourceProvider) {
     this.resourceProvider = resourceProvider;
@@ -239,5 +245,116 @@ public class ParametricBuilder {
     checkNotNull(defaultCompleter);
     this.defaultCompleter = defaultCompleter;
   }
+
+  // In Guava 18, this function is available under MoreExecutors.sameThreadExecutor().
+  // In Guava 18 this method was renamed to MoreExecutors.directExecutor(), the original one was deprecated and later
+  // removed.
+  // Here we need to support clients running Guava 10 - 22, so we need to supply this function by ourselves.
+  private static final class DirectExecutorService extends AbstractListeningExecutorService {
+
+    /**
+     * Lock used whenever accessing the state variables (runningTasks, shutdown) of the executor
+     */
+    private final Object lock = new Object();
+
+    /*
+     * Conceptually, these two variables describe the executor being in
+     * one of three states:
+     *   - Active: shutdown == false
+     *   - Shutdown: runningTasks > 0 and shutdown == true
+     *   - Terminated: runningTasks == 0 and shutdown == true
+     */
+    @GuardedBy("lock")
+    private int runningTasks = 0;
+
+    @GuardedBy("lock")
+    private boolean shutdown = false;
+
+    @Override
+    public void execute(Runnable command) {
+      startTask();
+      try {
+        command.run();
+      } finally {
+        endTask();
+      }
+    }
+
+    @Override
+    public boolean isShutdown() {
+      synchronized (lock) {
+        return shutdown;
+      }
+    }
+
+    @Override
+    public void shutdown() {
+      synchronized (lock) {
+        shutdown = true;
+        if (runningTasks == 0) {
+          lock.notifyAll();
+        }
+      }
+    }
+
+    // See newDirectExecutorService javadoc for unusual behavior of this method.
+    @Override
+    public List<Runnable> shutdownNow() {
+      shutdown();
+      return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isTerminated() {
+      synchronized (lock) {
+        return shutdown && runningTasks == 0;
+      }
+    }
+
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+      long nanos = unit.toNanos(timeout);
+      synchronized (lock) {
+        while (true) {
+          if (shutdown && runningTasks == 0) {
+            return true;
+          } else if (nanos <= 0) {
+            return false;
+          } else {
+            long now = System.nanoTime();
+            TimeUnit.NANOSECONDS.timedWait(lock, nanos);
+            nanos -= System.nanoTime() - now; // subtract the actual time we waited
+          }
+        }
+      }
+    }
+
+    /**
+     * Checks if the executor has been shut down and increments the running task count.
+     *
+     * @throws RejectedExecutionException if the executor has been previously shutdown
+     */
+    private void startTask() {
+      synchronized (lock) {
+        if (shutdown) {
+          throw new RejectedExecutionException("Executor already shutdown");
+        }
+        runningTasks++;
+      }
+    }
+
+    /**
+     * Decrements the running task count.
+     */
+    private void endTask() {
+      synchronized (lock) {
+        int numRunning = --runningTasks;
+        if (numRunning == 0) {
+          lock.notifyAll();
+        }
+      }
+    }
+  }
+
 
 }
