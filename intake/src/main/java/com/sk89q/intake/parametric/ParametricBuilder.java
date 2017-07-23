@@ -22,7 +22,9 @@ package com.sk89q.intake.parametric;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.AbstractListeningExecutorService;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.CommandCallable;
 import com.sk89q.intake.CommandException;
@@ -42,6 +44,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -75,12 +79,9 @@ public class ParametricBuilder {
   }
 
   /**
-   * Attach an invocation listener.
-   * <p>Invocation handlers are called in order that their listeners are registered with a ParametricBuilder. It is
-   * not
-   * guaranteed that a listener may be called, in the case of a {@link CommandException} being thrown at any time
-   * before
-   * the appropriate listener or handler is called.
+   * Attach an invocation listener. <p>Invocation handlers are called in order that their listeners are registered with
+   * a ParametricBuilder. It is not guaranteed that a listener may be called, in the case of a {@link CommandException}
+   * being thrown at any time before the appropriate listener or handler is called.
    *
    * @param listener The listener
    * @see InvokeHandler tThe handler
@@ -92,8 +93,7 @@ public class ParametricBuilder {
 
   /**
    * Attach an exception converter to this builder in order to wrap unknown {@link Throwable}s into known {@link
-   * CommandException}s.
-   * <p>Exception converters are called in order that they are registered.</p>
+   * CommandException}s. <p>Exception converters are called in order that they are registered.</p>
    *
    * @param converter The converter
    * @see ExceptionConverter for an explanation
@@ -104,8 +104,8 @@ public class ParametricBuilder {
   }
 
   /**
-   * Get the executor service used to invoke the actual command.
-   * <p>Bindings will still be resolved in the thread in which the callable was called.</p>
+   * Get the executor service used to invoke the actual command. <p>Bindings will still be resolved in the thread in
+   * which the callable was called.</p>
    *
    * @return The command executor
    */
@@ -114,8 +114,8 @@ public class ParametricBuilder {
   }
 
   /**
-   * Set the executor service used to invoke the actual command.
-   * <p>Bindings will still be resolved in the thread in which the callable was called.</p>
+   * Set the executor service used to invoke the actual command. <p>Bindings will still be resolved in the thread in
+   * which the callable was called.</p>
    *
    * @param commandExecutor The executor
    */
@@ -124,8 +124,8 @@ public class ParametricBuilder {
   }
 
   /**
-   * Set the executor service used to invoke the actual command.
-   * <p>Bindings will still be resolved in the thread in which the callable was called.</p> a
+   * Set the executor service used to invoke the actual command. <p>Bindings will still be resolved in the thread in
+   * which the callable was called.</p> a
    *
    * @param commandExecutor The executor
    */
@@ -135,8 +135,8 @@ public class ParametricBuilder {
   }
 
   /**
-   * Build a list of commands from methods specially annotated with {@link Command} (and other relevant
-   * annotations) and register them all with the given {@link Dispatcher}.
+   * Build a list of commands from methods specially annotated with {@link Command} (and other relevant annotations) and
+   * register them all with the given {@link Dispatcher}.
    *
    * @param dispatcher The dispatcher to register commands with
    * @param object     The object contain the methods
@@ -250,7 +250,32 @@ public class ParametricBuilder {
   // In Guava 18 this method was renamed to MoreExecutors.directExecutor(), the original one was deprecated and later
   // removed.
   // Here we need to support clients running Guava 10 - 22, so we need to supply this function by ourselves.
-  private static final class DirectExecutorService extends AbstractListeningExecutorService {
+  private static final class DirectExecutorService extends AbstractExecutorService implements ListeningExecutorService {
+
+    @Override
+    protected final <T> ListenableFutureTask<T> newTaskFor(Runnable runnable, T value) {
+      return ListenableFutureTask.create(runnable, value);
+    }
+
+    @Override
+    protected final <T> ListenableFutureTask<T> newTaskFor(Callable<T> callable) {
+      return ListenableFutureTask.create(callable);
+    }
+
+    @Override
+    public ListenableFuture<?> submit(Runnable task) {
+      return (ListenableFuture<?>) super.submit(task);
+    }
+
+    @Override
+    public <T> ListenableFuture<T> submit(Runnable task, @Nullable T result) {
+      return (ListenableFuture<T>) super.submit(task, result);
+    }
+
+    @Override
+    public <T> ListenableFuture<T> submit(Callable<T> task) {
+      return (ListenableFuture<T>) super.submit(task);
+    }
 
     /**
      * Lock used whenever accessing the state variables (runningTasks, shutdown) of the executor
