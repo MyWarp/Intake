@@ -149,6 +149,9 @@ public final class ArgumentParser {
         int argId = split.length - 1;
         String arg = split[argId];
 
+        if (argId > userParams.size()) {
+            return ImmutableList.of();
+        }
         Parameter parameter = userParams.get(argId);
         if(parameter == null) return ImmutableList.of();
 
