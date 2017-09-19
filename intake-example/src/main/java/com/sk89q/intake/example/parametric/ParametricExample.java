@@ -19,6 +19,7 @@
 
 package com.sk89q.intake.example.parametric;
 
+import com.google.common.base.Joiner;
 import com.sk89q.intake.CommandCallable;
 import com.sk89q.intake.CommandException;
 import com.sk89q.intake.Intake;
@@ -96,6 +97,10 @@ public final class ParametricExample {
         executeCommand(namespace, dispatcher, "body settemp earth 59 -f"); // Use of a flag (-f)
         executeCommand(namespace, dispatcher, "body info earth");
         executeCommand(namespace, dispatcher, "body delete earth"); // Permission fail
+
+        suggestCommand(namespace, dispatcher, "body info p"); //pluto
+        suggestCommand(namespace, dispatcher, "body info m"); //mercury, mars
+        suggestCommand(namespace, dispatcher, "body info too many arguments"); //no suggestions
     }
 
     private static void executeCommand(Namespace namespace, CommandCallable callable, String command) {
@@ -111,6 +116,18 @@ public final class ParametricExample {
             System.out.println("I'm sorry, Dave. I'm afraid I can't do that.");
         } catch (InvocationCommandException e) {
             log.log(Level.WARNING, "Something happened while executing a command", e);
+        }
+    }
+
+    private static void suggestCommand(Namespace namespace, CommandCallable callable, String command) {
+        System.out.println();
+        System.out.println("--------------------");
+        System.out.println("/" + command);
+
+        try {
+            System.out.println(Joiner.on(", ").join(callable.getSuggestions(command, namespace)));
+        } catch (CommandException e) {
+            System.out.println("Uh oh! Something is wrong: " + e.getMessage());
         }
     }
 
